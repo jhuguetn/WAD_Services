@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# chkconfig: 345 99 05
+# description: Manage globally all WAD-QC services
+
+action()
+{
+	service=$1
+	action=$2
+	if [ -e "/var/run/$service" -o "$action" == "start" -o "$action" == "status" ]; then
+                if [ -e /etc/init.d/$service ]; then
+			/etc/init.d/$service $action
+                else
+                	echo  "Warning: $service service was not found."
+			return 1
+                fi
+		return 1
+        else
+		return 0
+	fi
+}
+
+case $1 in
+        start)
+	     for i in wad-collector wad-selector wad-processor
+	     do
+		action $i start
+	     done
+        ;;
+        stop)
+	     for i in wad-collector wad-selector wad-processor
+	     do
+	     	if action $i stop
+		then
+                	echo "Warning: $i service was not running."
+		fi
+	     done
+        ;;
+        restart)
+	     for i in wad-collector wad-selector wad-processor
+	     do
+	     	if action $i restart
+		then
+			echo "Warning: $i service is not running; starting now."
+	                start $i
+		fi
+	     done
+        ;;
+        status)
+             for i in wad-collector wad-selector wad-processor
+             do
+                action $i status
+             done
+        ;;
+        *)
+             echo "Usage: `basename $0` {start|stop|restart|status}"
+        ;;
+esac
